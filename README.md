@@ -1,6 +1,12 @@
 
 # BM result
 
+## Install
+```bash
+uv pip install -r requirements.txt
+```
+
+## System
 ```bash
 .-/+oossssoo+/-.               yiyi@yiyi-MS-A2
 `:+ssssssssssssssssss+:`           ---------------
@@ -43,9 +49,9 @@ ossyNMMMNyMMhsssssssssssssshmmmhssssssso   WM: i3
 ## CPU
 
 ```bash
-
+uv run python test/cpu_benchmark.py --save-fig --profiling
 ```
-
+![Benchmark result](cpu_lidar_performance_analysis.png)
 
 ## GPU
 ```bash

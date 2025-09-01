@@ -115,22 +115,25 @@ if __name__ == "__main__":
 
             for i in range(n_tests):
                 # 执行光线追踪
+                start_time = time.perf_counter()
                 sensor = LidarSensor(model=mj_model, data=mj_data, 
                     site_name="lidar_site",
                     ray_theta=test_rays_theta,
                     ray_phi=test_rays_phi,
                 )
+                prep_time = time.perf_counter() - start_time
                 sensor.update()
+                update_time = time.perf_counter() - start_time - prep_time
                 sensor.get_data_in_world_frame()
 
                 # 累加时间
-                # prepare_time_sum += lidar.prepare_time
+                prepare_time_sum += prep_time
                 # kernel_time_sum += lidar.kernel_time
                 # update_geom_time_sum += lidar.update_geom_time
                 # # 累加准备阶段各操作时间
                 # sensor_pose_time_sum += lidar.convert_sensor_pose_time
                 # memory_alloc_time_sum += lidar.memory_allocation_time
-                # rays_update_time_sum += lidar.update_rays_time
+                rays_update_time_sum += update_time
                 # sync_time_sum += lidar.sync_time
 
             # 计算平均时间
@@ -250,22 +253,25 @@ if __name__ == "__main__":
 
             for i in range(n_tests):
                 # 执行光线追踪
+                start_time = time.perf_counter()
                 sensor = LidarSensor(model=mj_model, data=mj_data, 
                     site_name="lidar_site",
                     ray_theta=test_rays_theta,
                     ray_phi=test_rays_phi,
                 )
+                prep_time = time.perf_counter() - start_time
                 sensor.update()
+                update_time = time.perf_counter() - start_time - prep_time
                 sensor.get_data_in_world_frame()
 
                 # 累加时间
-                # prepare_time_sum += test_lidar.prepare_time
+                prepare_time_sum += prep_time
                 # kernel_time_sum += test_lidar.kernel_time
                 # update_geom_time_sum += test_lidar.update_geom_time
                 # # 累加各操作时间
                 # sensor_pose_time_sum += test_lidar.convert_sensor_pose_time
                 # memory_alloc_time_sum += test_lidar.memory_allocation_time
-                # rays_update_time_sum += test_lidar.update_rays_time
+                rays_update_time_sum += update_time
                 # sync_time_sum += test_lidar.sync_time
 
             # 计算平均时间
