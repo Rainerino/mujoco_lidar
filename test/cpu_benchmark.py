@@ -17,7 +17,6 @@ from src.lidar import LidarSensor
 from mujoco_lidar.scan_gen import generate_grid_scan_pattern
 
 
-
 if __name__ == "__main__":
     # 解析命令行参数
     parser = argparse.ArgumentParser(description="MuJoCo LiDAR传感器演示和性能测试")
@@ -49,7 +48,6 @@ if __name__ == "__main__":
         mujoco.mjtCatBit.mjCAT_ALL.value,
         scene,
     )
-
 
     # 设置激光雷达传感器位姿
     lidar_position = np.array([0.0, 0.0, 1.0], dtype=np.float32)
@@ -116,7 +114,9 @@ if __name__ == "__main__":
             for i in range(n_tests):
                 # 执行光线追踪
                 start_time = time.perf_counter()
-                sensor = LidarSensor(model=mj_model, data=mj_data, 
+                sensor = LidarSensor(
+                    model=mj_model,
+                    data=mj_data,
                     site_name="lidar_site",
                     ray_theta=test_rays_theta,
                     ray_phi=test_rays_phi,
@@ -254,7 +254,9 @@ if __name__ == "__main__":
             for i in range(n_tests):
                 # 执行光线追踪
                 start_time = time.perf_counter()
-                sensor = LidarSensor(model=mj_model, data=mj_data, 
+                sensor = LidarSensor(
+                    model=mj_model,
+                    data=mj_data,
                     site_name="lidar_site",
                     ray_theta=test_rays_theta,
                     ray_phi=test_rays_phi,
@@ -517,7 +519,9 @@ if __name__ == "__main__":
 
     for _ in range(3):
         start_time = time.time()
-        sensor = LidarSensor(model=mj_model, data=mj_data, 
+        sensor = LidarSensor(
+            model=mj_model,
+            data=mj_data,
             site_name="lidar_site",
             ray_theta=rays_theta,
             ray_phi=rays_phi,

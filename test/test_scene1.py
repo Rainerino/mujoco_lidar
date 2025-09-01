@@ -15,8 +15,8 @@ sys.path.insert(0, parent_dir)
 from src.lidar import LidarSensor
 
 ray_theta, ray_phi = generate_grid_scan_pattern(
-    num_ray_cols=10,
-    num_ray_rows=10,
+    num_ray_cols=50,
+    num_ray_rows=50,
 )
 # ray_theta, ray_phi = generate_HDL64()
 # ray_theta, ray_phi = LivoxGenerator("mid360").sample_ray_angles()
@@ -29,7 +29,7 @@ VISUALIZE = True
 def test_scene1():
     # Get the path to the scene1.xml file
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    filename = os.path.join(current_dir, "scene0.xml")
+    filename = os.path.join(current_dir, "scene1.xml")
     try:
         with open(filename, "r") as f:
             original_xml = f.read()
