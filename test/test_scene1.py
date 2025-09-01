@@ -14,21 +14,22 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 from src.lidar import LidarSensor
 
-# ray_theta, ray_phi = generate_grid_scan_pattern(
-#     num_ray_cols=100,
-#     num_ray_rows=100,
-# )
+ray_theta, ray_phi = generate_grid_scan_pattern(
+    num_ray_cols=10,
+    num_ray_rows=10,
+)
 # ray_theta, ray_phi = generate_HDL64()
-ray_theta, ray_phi = LivoxGenerator("mid360").sample_ray_angles()
+# ray_theta, ray_phi = LivoxGenerator("mid360").sample_ray_angles()
 
 RANDOM_RANGE = 5
 CUTOFF = 5
-VISUALIZE = False
+VISUALIZE = True
+
 
 def test_scene1():
     # Get the path to the scene1.xml file
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    filename = os.path.join(current_dir, "scene2.xml")
+    filename = os.path.join(current_dir, "scene0.xml")
     try:
         with open(filename, "r") as f:
             original_xml = f.read()
@@ -36,12 +37,14 @@ def test_scene1():
         print(f"Error: The file '{filename}' was not found.")
         exit()
         
+    assert not (VISUALIZE and ray_theta.shape[0] > 50 * 50 )
+
     if VISUALIZE:
         boxes_xml = ""
-        
+
         for i in range(ray_theta.shape[0]):
             # Unique position and color for each box
-            start_pos = f"{np.random.uniform(-RANDOM_RANGE, RANDOM_RANGE)} {np.random.uniform(-RANDOM_RANGE, RANDOM_RANGE)} {np.random.uniform(0, RANDOM_RANGE/2)}"
+            start_pos = f"{np.random.uniform(-RANDOM_RANGE, RANDOM_RANGE)} {np.random.uniform(-RANDOM_RANGE, RANDOM_RANGE)} {np.random.uniform(0, RANDOM_RANGE / 2)}"
             color = f"{np.random.uniform(0, 1)} {np.random.uniform(0, 1)} {np.random.uniform(0, 1)} 1"
             boxes_xml += f"""
                 <body name="point_{i}" mocap="true" pos="{start_pos}">
@@ -50,18 +53,20 @@ def test_scene1():
             """
         if "<worldbody>" in original_xml:
             full_xml = original_xml.replace("<worldbody>", f"<worldbody>{boxes_xml}", 1)
-            # Initalize M x N number of boxes, and visualize them.
-            mocap_ids = [model.body(f"point_{i}").mocapid[0] for i in range(ray_theta.shape[0])]
         else:
             print(f"Error: Could not find <worldbody> tag in {filename}.")
             exit()
     # Load the MuJoCo model
     if VISUALIZE:
         model = mujoco.MjModel.from_xml_string(full_xml)
+        # Initalize M x N number of boxes, and visualize them.
+        mocap_ids = [
+            model.body(f"point_{i}").mocapid[0] for i in range(ray_theta.shape[0])
+        ]
     else:
         model = mujoco.MjModel.from_xml_path(filename)
     data = mujoco.MjData(model)
-    
+
     # Initialize lidar sensor
     lidar_sensor = LidarSensor(
         model=model,
@@ -113,8 +118,10 @@ def test_scene1():
             if frame_count % timing_interval == 0:
                 avg_time = total_time / frame_count
                 fps = 1.0 / avg_time if avg_time > 0 else 0
-                print(f"Frame {frame_count}: Avg loop time: {avg_time*1000:.2f}ms, FPS: {fps:.1f}")
-                print(f"Last loop time: {loop_time*1000:.2f}ms")
+                print(
+                    f"Frame {frame_count}: Avg loop time: {avg_time * 1000:.2f}ms, FPS: {fps:.1f}"
+                )
+                print(f"Last loop time: {loop_time * 1000:.2f}ms")
 
 
 # Run the test

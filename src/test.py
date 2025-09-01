@@ -26,14 +26,9 @@ mujoco.mj_forward(model, data)
 
 # 3. Define the rays with the correct data types
 nray = 2
-pnt = np.array([
-    [0, 0, 0.5]
-], dtype=np.float64).T  # FIX 1: Use float64
+pnt = np.array([[0, 0, 0.5]], dtype=np.float64).T  # FIX 1: Use float64
 
-vec = np.array([
-    [-1, 0, 0],
-    [1, 0, 0]
-], dtype=np.float64) # FIX 2: Use float64
+vec = np.array([[-1, 0, 0], [1, 0, 0]], dtype=np.float64)  # FIX 2: Use float64
 
 print(vec)
 vec /= np.linalg.norm(vec, axis=1, keepdims=True)
@@ -41,7 +36,7 @@ vec = vec.flatten()
 print(vec)
 # 4. Pre-allocate the output arrays with the correct data types
 cutoff = 2.0
-geomid = np.zeros(nray, dtype=np.int32)      # FIX 3: Use int32 for geomid
+geomid = np.zeros(nray, dtype=np.int32)  # FIX 3: Use int32 for geomid
 dist = np.full(nray, cutoff, dtype=np.float64)
 
 print(pnt.shape)
@@ -52,16 +47,16 @@ print(geomid)
 # 5. Call mj_multiRay with all required arguments
 mujoco.mj_multiRay(
     m=model,
-    d=data, 
-    pnt=pnt, 
+    d=data,
+    pnt=pnt,
     vec=vec,
-    geomgroup=None, 
-    flg_static=0, 
+    geomgroup=None,
+    flg_static=0,
     bodyexclude=-1,
     geomid=geomid,
     dist=dist,
-    nray=nray,      # FIX 4: Explicitly pass nray
-    cutoff=cutoff     # FIX 5: Explicitly pass cutoff
+    nray=nray,  # FIX 4: Explicitly pass nray
+    cutoff=cutoff,  # FIX 5: Explicitly pass cutoff
 )
 
 
