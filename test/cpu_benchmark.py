@@ -7,8 +7,15 @@ import taichi as ti
 import zhplot  # 如果图像显示中文，需要安装zhplot
 import matplotlib.pyplot as plt
 
-from mujoco_lidar.core import MjLidarSensor
+import sys, os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+from src.lidar import LidarSensor
+
 from mujoco_lidar.scan_gen import generate_grid_scan_pattern
+
 
 
 if __name__ == "__main__":
@@ -43,8 +50,6 @@ if __name__ == "__main__":
         scene,
     )
 
-    # 创建激光雷达传感器
-    lidar = MjLidarSensor(mj_scene=scene, mj_model=mj_model, enable_profiling=args.profiling, verbose=args.verbose)
 
     # 设置激光雷达传感器位姿
     lidar_position = np.array([0.0, 0.0, 1.0], dtype=np.float32)
@@ -108,26 +113,25 @@ if __name__ == "__main__":
             rays_update_time_sum = 0
             sync_time_sum = 0
 
-            points = lidar.ray_cast_taichi(
-                test_rays_phi, test_rays_theta, lidar_pose, scene
-            )
-            ti.sync()
             for i in range(n_tests):
                 # 执行光线追踪
-                points = lidar.ray_cast_taichi(
-                    test_rays_phi, test_rays_theta, lidar_pose, scene
+                sensor = LidarSensor(model=mj_model, data=mj_data, 
+                    site_name="lidar_site",
+                    ray_theta=test_rays_theta,
+                    ray_phi=test_rays_phi,
                 )
-                ti.sync()
+                sensor.update()
+                sensor.get_data_in_world_frame()
 
                 # 累加时间
-                prepare_time_sum += lidar.prepare_time
-                kernel_time_sum += lidar.kernel_time
-                update_geom_time_sum += lidar.update_geom_time
-                # 累加准备阶段各操作时间
-                sensor_pose_time_sum += lidar.convert_sensor_pose_time
-                memory_alloc_time_sum += lidar.memory_allocation_time
-                rays_update_time_sum += lidar.update_rays_time
-                sync_time_sum += lidar.sync_time
+                # prepare_time_sum += lidar.prepare_time
+                # kernel_time_sum += lidar.kernel_time
+                # update_geom_time_sum += lidar.update_geom_time
+                # # 累加准备阶段各操作时间
+                # sensor_pose_time_sum += lidar.convert_sensor_pose_time
+                # memory_alloc_time_sum += lidar.memory_allocation_time
+                # rays_update_time_sum += lidar.update_rays_time
+                # sync_time_sum += lidar.sync_time
 
             # 计算平均时间
             avg_prepare_time = prepare_time_sum / n_tests
@@ -233,11 +237,6 @@ if __name__ == "__main__":
                 test_scene,
             )
 
-            # 创建新的激光雷达传感器
-            test_lidar = MjLidarSensor(
-                test_scene, enable_profiling=args.profiling, verbose=args.verbose
-            )
-
             # 执行多次测试取平均值
             n_tests = 5
             prepare_time_sum = 0
@@ -249,26 +248,25 @@ if __name__ == "__main__":
             rays_update_time_sum = 0
             sync_time_sum = 0
 
-            points = test_lidar.ray_cast_taichi(
-                test_rays_phi, test_rays_theta, lidar_pose, test_scene
-            )
-            ti.sync()
             for i in range(n_tests):
                 # 执行光线追踪
-                points = test_lidar.ray_cast_taichi(
-                    test_rays_phi, test_rays_theta, lidar_pose, test_scene
+                sensor = LidarSensor(model=mj_model, data=mj_data, 
+                    site_name="lidar_site",
+                    ray_theta=test_rays_theta,
+                    ray_phi=test_rays_phi,
                 )
-                ti.sync()
+                sensor.update()
+                sensor.get_data_in_world_frame()
 
                 # 累加时间
-                prepare_time_sum += test_lidar.prepare_time
-                kernel_time_sum += test_lidar.kernel_time
-                update_geom_time_sum += test_lidar.update_geom_time
-                # 累加各操作时间
-                sensor_pose_time_sum += test_lidar.convert_sensor_pose_time
-                memory_alloc_time_sum += test_lidar.memory_allocation_time
-                rays_update_time_sum += test_lidar.update_rays_time
-                sync_time_sum += test_lidar.sync_time
+                # prepare_time_sum += test_lidar.prepare_time
+                # kernel_time_sum += test_lidar.kernel_time
+                # update_geom_time_sum += test_lidar.update_geom_time
+                # # 累加各操作时间
+                # sensor_pose_time_sum += test_lidar.convert_sensor_pose_time
+                # memory_alloc_time_sum += test_lidar.memory_allocation_time
+                # rays_update_time_sum += test_lidar.update_rays_time
+                # sync_time_sum += test_lidar.sync_time
 
             # 计算平均时间
             avg_prepare_time = prepare_time_sum / n_tests
@@ -465,7 +463,7 @@ if __name__ == "__main__":
 
         plt.tight_layout()
         if args.save_fig:
-            plt.savefig("lidar_performance_analysis.png", dpi=300)
+            plt.savefig("cpu_lidar_performance_analysis.png", dpi=300)
         plt.show()
 
         # 将性能测试结果以表格形式打印
@@ -502,12 +500,6 @@ if __name__ == "__main__":
 
     # 执行标准光线追踪测试
     print("\n执行标准光线追踪测试:")
-    old_enable_profiling = lidar.enable_profiling
-    old_verbose = lidar.verbose
-
-    # 临时开启性能分析和详细输出
-    lidar.enable_profiling = True
-    lidar.verbose = True
 
     rays_theta, rays_phi = generate_grid_scan_pattern(
         num_ray_cols=1800, num_ray_rows=64
@@ -519,13 +511,14 @@ if __name__ == "__main__":
 
     for _ in range(3):
         start_time = time.time()
-        points = lidar.ray_cast_taichi(rays_phi, rays_theta, lidar_pose, scene)
-        ti.sync()
+        sensor = LidarSensor(model=mj_model, data=mj_data, 
+            site_name="lidar_site",
+            ray_theta=rays_theta,
+            ray_phi=rays_phi,
+        )
+        sensor.update()
+        points = sensor.get_data_in_world_frame()
         end_time = time.time()
-
-    # 恢复原始设置
-    lidar.enable_profiling = old_enable_profiling
-    lidar.verbose = old_verbose
 
     # 打印性能信息和当前位置
     print(f"耗时: {(end_time - start_time) * 1000:.2f} ms, 射线数量: {len(rays_phi)}")

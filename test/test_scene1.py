@@ -36,8 +36,8 @@ def test_scene1():
     except FileNotFoundError:
         print(f"Error: The file '{filename}' was not found.")
         exit()
-        
-    assert not (VISUALIZE and ray_theta.shape[0] > 50 * 50 )
+
+    assert not (VISUALIZE and ray_theta.shape[0] > 50 * 50)
 
     if VISUALIZE:
         boxes_xml = ""
