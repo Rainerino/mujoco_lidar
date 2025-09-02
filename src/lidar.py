@@ -78,7 +78,7 @@ class LidarSensor:
         # Transform to the global frame.
         site_pos = self.data.site_xpos[self.site_id]
         site_mat = self.data.site_xmat[self.site_id].reshape(3, 3)
-        pcl_world = np.add(pcl_local, site_pos)
+        pcl_world = np.add(pcl_local @ site_mat.T, site_pos)
         return pcl_world
 
     def exclude_geom(self, geom_id: int) -> None:
